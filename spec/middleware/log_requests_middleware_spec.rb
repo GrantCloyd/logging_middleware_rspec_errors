@@ -18,7 +18,7 @@ RSpec.describe LogRequestsMiddleware do
         let(:env) { nil }
         let(:app) {  lambda { |env| [200, {'Content-Type' => 'text/plain'}, nil] } } 
 
-        it "will throw a NoMethodError" do
+        it "will throw a NoMethodError when attempting to access body" do
           expect { subject.call(env) }.to raise_error(NoMethodError, "undefined method `[]' for nil")
         end
       end
@@ -64,6 +64,17 @@ RSpec.describe LogRequestsMiddleware do
             subject.log_request_and_response!(request:, headers:, url:, response:) 
           end
           .to raise_error(NoMethodError, "undefined method `empty?' for nil")
+        end
+      end
+
+      context 'if response is not json' do
+        let(:response) { '{not: valid}' }
+        it "will throw a JSON::ParseError when attempting to parse response" do
+
+          expect do
+            subject.log_request_and_response!(request:, headers:, url:, response:) 
+          end
+          .to raise_error(JSON::ParserError)
         end
       end
 
